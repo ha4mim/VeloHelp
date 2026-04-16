@@ -1,0 +1,28 @@
+<!-- components/header.html -->
+<div class="navbar-custom">
+    <div class="topbar">
+        <div class="topbar-menu d-flex align-items-center gap-1">
+            <!-- Sidebar toggle + logo already handled in sidebar -->
+            <button class="button-toggle-menu">
+                <i class="mdi mdi-menu"></i>
+            </button>
+        </div>
+
+        <ul class="topbar-menu d-flex align-items-center">
+            <!-- Search -->
+            <li class="app-search dropdown me-3 d-none d-lg-block">
+                <form>
+                    <input type="search" class="form-control rounded-pill" placeholder="Search documentation..." id="top-search">
+                    <span class="fe-search search-icon font-16"></span>
+                </form>
+            </li>
+            <!-- Dark/Light mode, notifications, user dropdown, settings - kept from original Ubold -->
+            <li class="d-none d-sm-inline-block">
+                <div class="nav-link waves-effect waves-light" id="light-dark-mode">
+                    <i class="ri-moon-line font-22"></i>
+                </div>
+            </li>
+            <!-- Add more topbar items later if needed -->
+        </ul>
+    </div>
+</div>

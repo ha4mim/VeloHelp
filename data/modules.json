@@ -1,0 +1,54 @@
+[
+  {
+    "module": "System Overview",
+    "icon": "home",
+    "pages": [
+      {
+        "title": "Welcome & Key Features",
+        "content": "<p>Welcome to VeloHelp - a simple and powerful system designed to make your daily work easier.</p><h5>Key Features</h5><ul><li>Easy to use interface</li><li>Role-based access</li><li>Quick workflows</li><li>Helpful troubleshooting tips</li></ul>",
+        "video": "https://www.youtube.com/embed/dQw4w9wgxcq",
+        "images": ["../docs/screenshots/overview1.png"],
+        "faq": [
+          {"q": "Who can use this system?", "a": "All team members with proper login."}
+        ]
+      }
+    ]
+  },
+  {
+    "module": "Employee Management",
+    "icon": "users",
+    "pages": [
+      {
+        "title": "Add New Employee",
+        "content": "<h6>Step-by-step guide:</h6><ol><li>Go to Employee menu</li><li>Click Add New</li><li>Fill the form</li><li>Click Save</li></ol>",
+        "video": "https://www.youtube.com/embed/dQw4w9wgxcq",
+        "images": [],
+        "faq": [
+          {"q": "What if I make a mistake?", "a": "You can edit the record anytime."}
+        ]
+      },
+      {
+        "title": "View Employee List",
+        "content": "Here you can search and filter all employees...",
+        "video": "",
+        "images": [],
+        "faq": []
+      }
+    ]
+  },
+  {
+    "module": "Troubleshooting",
+    "icon": "alert-triangle",
+    "pages": [
+      {
+        "title": "Common Issues & Solutions",
+        "content": "<p>If you see error XYZ, try these steps...</p>",
+        "video": "",
+        "images": [],
+        "faq": [
+          {"q": "Login not working?", "a": "Clear browser cache and try again."}
+        ]
+      }
+    ]
+  }
+]

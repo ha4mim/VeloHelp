@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" data-topbar-color="dark">
+<head>
+    <meta charset="utf-8">
+    <title>VeloHelp Documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="../assets/images/favicon.ico">
+
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="../assets/css/app.min.css" rel="stylesheet" type="text/css">
+    <link href="../assets/css/icons.min.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div id="wrapper">
+        <!-- Dynamic Sidebar -->
+        <div id="sidebar-placeholder"></div>
+
+        <!-- Content Page -->
+        <div class="content-page">
+            <!-- Dynamic Header -->
+            <div id="header-placeholder"></div>
+
+            <!-- Main Content -->
+            <div class="content">
+                <div class="container-fluid">
+
+                    <!-- Breadcrumb -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="page-title-box">
+                                <div class="page-title-right">
+                                    <ol class="breadcrumb m-0">
+                                        <li class="breadcrumb-item"><a href="../pages/index.html">Home</a></li>
+                                        <li class="breadcrumb-item active" id="breadcrumb-module"></li>
+                                        <li class="breadcrumb-item active" id="breadcrumb-page"></li>
+                                    </ol>
+                                </div>
+                                <h4 class="page-title" id="page-title">Loading...</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body" id="content-area">
+                                    <!-- Content will be injected here by JavaScript -->
+                                    <div class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                        <p class="mt-3">Loading documentation...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Dynamic Footer -->
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/vendor.min.js"></script>
+    <script src="../assets/js/app.min.js"></script>
+    <script src="../utils/menu.js"></script>
+    <script src="../utils/loader.js"></script>
+
+    <!-- Content Renderer -->
+    <script>
+        async function renderPageContent() {
+            try {
+                // Get module name from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const moduleName = urlParams.get('module');
+
+                if (!moduleName) {
+                    document.getElementById('content-area').innerHTML = `
+                        <div class="alert alert-danger">
+                            <h5>No module selected</h5>
+                            <p>Please select a module from the sidebar.</p>
+                        </div>`;
+                    return;
+                }
+
+                // Load modules.json
+                const response = await fetch('../data/modules.json');
+                const modules = await response.json();
+
+                // Find the requested module
+                const currentModule = modules.find(m => m.module === decodeURIComponent(moduleName));
+
+                if (!currentModule) {
+                    document.getElementById('content-area').innerHTML = `
+                        <div class="alert alert-warning">
+                            <h5>Module not found</h5>
+                            <p>Module "${moduleName}" does not exist.</p>
+                        </div>`;
+                    return;
+                }
+
+                // For now we show the first page of the module (we can improve later to support sub-pages)
+                const page = currentModule.pages[0];
+
+                // Update title and breadcrumb
+                document.getElementById('page-title').textContent = page.title;
+                document.getElementById('breadcrumb-module').textContent = currentModule.module;
+                document.getElementById('breadcrumb-page').textContent = page.title;
+
+                // Build content HTML
+                let html = `
+                    <h4 class="mb-4">${page.title}</h4>
+                    <div class="mb-4">
+                        ${page.content}
+                    </div>
+                `;
+
+                // YouTube Video
+                if (page.video) {
+                    html += `
+                        <div class="mb-4">
+                            <h5 class="mb-3">Video Walkthrough</h5>
+                            <div class="ratio ratio-16x9">
+                                <iframe src="${page.video}" 
+                                        title="Video Walkthrough" 
+                                        allowfullscreen></iframe>
+                            </div>
+                        </div>`;
+                }
+
+                // Images / Screenshots
+                if (page.images && page.images.length > 0) {
+                    html += `<h5 class="mb-3">Screenshots</h5><div class="row">`;
+                    page.images.forEach(img => {
+                        html += `
+                            <div class="col-md-6 mb-3">
+                                <img src="${img}" class="img-fluid rounded border" alt="Screenshot">
+                            </div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                // FAQ Section (Accordion using Bootstrap)
+                if (page.faq && page.faq.length > 0) {
+                    html += `
+                        <h5 class="mb-3 mt-5">Frequently Asked Questions</h5>
+                        <div class="accordion" id="faqAccordion">`;
+
+                    page.faq.forEach((item, index) => {
+                        html += `
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button ${index === 0 ? '' : 'collapsed'}" 
+                                            type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#faq${index}">
+                                        ${item.q}
+                                    </button>
+                                </h2>
+                                <div id="faq${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}">
+                                    <div class="accordion-body">
+                                        ${item.a}
+                                    </div>
+                                </div>
+                            </div>`;
+                    });
+
+                    html += `</div>`;
+                }
+
+                // Final content
+                document.getElementById('content-area').innerHTML = html;
+
+                // Re-init Bootstrap components
+                const accordion = document.querySelectorAll('.accordion');
+                if (accordion.length) {
+                    // Bootstrap 5 accordion is auto-initialized
+                }
+
+            } catch (error) {
+                console.error("Error rendering content:", error);
+                document.getElementById('content-area').innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5>Error loading content</h5>
+                        <p>${error.message}</p>
+                    </div>`;
+            }
+        }
+
+        // Run when page is fully loaded
+        document.addEventListener('DOMContentLoaded', renderPageContent);
+    </script>
+</body>
+</html>

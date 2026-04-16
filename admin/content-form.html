@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-topbar-color="dark">
+<head>
+    <meta charset="utf-8">
+    <title>VeloHelp - JSON Content Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="../assets/images/favicon.ico">
+
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/css/app.min.css" rel="stylesheet">
+    <link href="../assets/css/icons.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="wrapper">
+        <div id="sidebar-placeholder"></div>
+
+        <div class="content-page">
+            <div id="header-placeholder"></div>
+
+            <div class="content">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="page-title-box">
+                                <h4 class="page-title">Admin - Content Generator</h4>
+                                <p class="text-muted">Create or update documentation content. Download updated modules.json</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form id="contentForm">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Module Name</label>
+                                                <input type="text" class="form-control" id="moduleName" placeholder="e.g. Employee Management" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Icon (feather name)</label>
+                                                <input type="text" class="form-control" id="moduleIcon" value="users" placeholder="users, book, etc.">
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Page Title</label>
+                                            <input type="text" class="form-control" id="pageTitle" placeholder="e.g. Add New Employee" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Content (HTML supported)</label>
+                                            <textarea class="form-control" id="pageContent" rows="8" placeholder="Write step-by-step guide..."></textarea>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">YouTube Video Embed URL</label>
+                                            <input type="url" class="form-control" id="videoUrl" placeholder="https://www.youtube.com/embed/VIDEO_ID">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">FAQ (One per line: Question | Answer)</label>
+                                            <textarea class="form-control" id="faqInput" rows="5" placeholder="How to add employee? | Go to menu and click Add New"></textarea>
+                                        </div>
+
+                                        <button type="button" id="generateBtn" class="btn btn-primary btn-lg w-100">
+                                            Generate & Download modules.json
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Instructions</h5>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">• Fill the form</li>
+                                        <li class="mb-2">• Click Generate</li>
+                                        <li class="mb-2">• Download the file</li>
+                                        <li class="mb-2">• Replace your existing <code>data/modules.json</code></li>
+                                    </ul>
+                                    <hr>
+                                    <button id="copyBtn" class="btn btn-outline-secondary w-100">Copy JSON to Clipboard</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="footer-placeholder"></div>
+        </div>
+    </div>
+
+    <script src="../assets/js/vendor.min.js"></script>
+    <script src="../assets/js/app.min.js"></script>
+    <script src="../assets/vendors/feather-icons/feather.min.js"></script>
+    <script src="../utils/menu.js"></script>
+    <script src="../utils/loader.js"></script>
+
+    <script>
+        let currentModules = [];
+
+        // Load existing modules
+        async function loadExistingModules() {
+            try {
+                const res = await fetch('../data/modules.json');
+                currentModules = await res.json();
+            } catch (e) {
+                currentModules = [];
+            }
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const moduleName = document.getElementById('moduleName').value.trim();
+            const pageTitle = document.getElementById('pageTitle').value.trim();
+            const content = document.getElementById('pageContent').value.trim();
+            const video = document.getElementById('videoUrl').value.trim();
+            const faqText = document.getElementById('faqInput').value.trim();
+            const icon = document.getElementById('moduleIcon').value.trim() || 'file-text';
+
+            if (!moduleName || !pageTitle || !content) {
+                alert("Module Name, Page Title and Content are required!");
+                return;
+            }
+
+            // Parse FAQs
+            const faqArray = faqText.split('\n')
+                .filter(line => line.includes('|'))
+                .map(line => {
+                    const [q, a] = line.split('|').map(s => s.trim());
+                    return { q, a };
+                });
+
+            // Find or create module
+            let moduleObj = currentModules.find(m => m.module === moduleName);
+            if (!moduleObj) {
+                moduleObj = { module: moduleName, icon: icon, pages: [] };
+                currentModules.push(moduleObj);
+            }
+
+            moduleObj.pages.push({
+                title: pageTitle,
+                content: content,
+                video: video || "",
+                images: [],
+                faq: faqArray
+            });
+
+            // Generate JSON
+            const jsonString = JSON.stringify(currentModules, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'modules.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert("modules.json downloaded successfully!\n\nReplace the file in /data/ folder.");
+        });
+
+        // Copy to clipboard
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const jsonString = JSON.stringify(currentModules, null, 2);
+            navigator.clipboard.writeText(jsonString).then(() => {
+                alert("JSON copied to clipboard!");
+            });
+        });
+
+        // Init
+        loadExistingModules();
+    </script>
+</body>
+</html>
